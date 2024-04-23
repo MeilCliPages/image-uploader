@@ -1,0 +1,25 @@
+name = "image-uploader"
+main = "src/worker.ts"
+compatibility_date = "2024-04-14"
+workers_dev = false
+
+[vars]
+IMAGE_HOST = "image.example.com"
+
+[[routes]]
+pattern = "upload.example.com/*"
+zone_name = "example.com"
+
+[[routes]]
+pattern = "upload.example.com"
+zone_name = "example.com"
+
+[[d1_databases]]
+binding = "IMAGE_D1"
+database_name = "image-example-com"
+database_id = "the-id-of-your-D1-database-goes-here"
+migrations_dir = "./d1_migrations"
+
+[[r2_buckets]]
+binding = "IMAGE_R2"
+bucket_name = "image-example-com"

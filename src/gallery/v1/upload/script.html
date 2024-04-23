@@ -1,0 +1,192 @@
+<script>
+    bsCustomFileInput.init();
+
+    class Variant {
+
+        name;
+        filename;
+        option;
+        variantImage;
+
+        constructor(name, filename, option) {
+            this.name = name;
+            this.filename = filename;
+            this.option = option;
+            option.success = (variantImage) => {
+                this.updateFileSize(`${(variantImage.size / 1024 / 1024).toFixed(2)} MB`);
+                this.variantImage = variantImage;
+            };
+        }
+
+        html() {
+            return `
+                <div class="form-row">
+                    <label for="${this.name}FileSize" class="col-md-7 col-form-label" id="${this.name}FileSizeLabel">${this.filename}</label>
+                    <div class="col-md-3">
+                        <input type="text" readonly class="form-control-plaintext" id="${this.name}FileSize"
+                            value="Size: ">
+                    </div>
+                    <div class="col-md-2" id="${this.name}Link">
+                    </div>
+                </div>
+                `;
+        }
+
+        append(parent) {
+            parent.insertAdjacentHTML("beforeend", this.html());
+        }
+
+        convertToVariant(image) {
+            this.updateLink("");
+            this.updateFileSize("");
+            new Compressor(image, this.option);
+        }
+
+        setToVariant(image) {
+            let imageExtension = "jpg";
+            if (image.type == "image/png") {
+                imageExtension = "png"
+            }
+            if (image.type == "image/webp") {
+                imageExtension = "webp"
+            }
+            if (image.type == "image/gif") {
+                imageExtension = "gif"
+            }
+            this.filename = `${this.name}.${imageExtension}`
+            this.updateLink("");
+            this.updateFileSizeLabel(this.filename);
+            this.updateFileSize(`${(image.size / 1024 / 1024).toFixed(2)} MB`);
+            this.variantImage = image;
+        }
+
+        uploadFile(uuid, onNext) {
+            const data = new FormData();
+            data.append("file", this.variantImage);
+            data.append("uuid", uuid);
+            data.append("filename", this.filename);
+
+            const request = new XMLHttpRequest();
+            request.upload.addEventListener("error", (event) => {
+                this.updateLink("Upload Failed");
+            });
+            request.upload.addEventListener("abort", (event) => {
+                this.updateLink("Upload Aborted");
+            });
+            request.upload.addEventListener("timeout", (event) => {
+                this.updateLink("Upload timeout");
+            });
+            request.addEventListener("load", (event) => {
+                const response = JSON.parse(request.responseText);
+                this.updateLink(`<a href="${response.url}">Link</a>`);
+                onNext();
+            });
+            request.open("POST", "/gallery/v1/api/blob");
+            request.send(data);
+        }
+
+        updateLink(linkHtml) {
+            document.getElementById(`${this.name}Link`).innerHTML = linkHtml;
+        }
+
+        updateFileSizeLabel(label) {
+            document.getElementById(`${this.name}FileSizeLabel`).innerHTML = label;
+        }
+
+        updateFileSize(sizeText) {
+            document.getElementById(`${this.name}FileSize`).value = `Size: ${sizeText}`;
+        }
+    }
+
+    const uploadForm = document.getElementById("upload_form");
+
+    const originalVariant = new Variant("original", "original.jpg", {});
+    originalVariant.append(uploadForm);
+
+    const variants = [];
+    variants.push(new Variant("compressed", "compressed.jpg", {
+        quality: 0.8,
+        mimeType: "image/jpeg"
+    }));
+    variants.push(new Variant("compressedWebp", "compressed.webp", {
+        quality: 0.8,
+        mimeType: "image/webp"
+    }));
+    variants.push(new Variant("image2160", "image-2160.jpg", {
+        maxWidth: 2160,
+        maxHeight: 2160,
+        quality: 0.8,
+        mimeType: "image/jpeg"
+    }));
+    variants.push(new Variant("image2160WebP", "image-2160.webp", {
+        maxWidth: 2160,
+        maxHeight: 2160,
+        quality: 0.8,
+        mimeType: "image/webp"
+    }));
+    variants.push(new Variant("image1080", "image-1080.jpg", {
+        maxWidth: 1080,
+        maxHeight: 1080,
+        quality: 0.8,
+        mimeType: "image/jpeg"
+    }));
+    variants.push(new Variant("image1080WebP", "image-1080.webp", {
+        maxWidth: 1080,
+        maxHeight: 1080,
+        quality: 0.8,
+        mimeType: "image/webp"
+    }));
+    variants.push(new Variant("image540", "image-540.jpg", {
+        maxWidth: 540,
+        maxHeight: 540,
+        quality: 0.8,
+        mimeType: "image/jpeg"
+    }));
+    variants.push(new Variant("image540WebP", "image-540.webp", {
+        maxWidth: 540,
+        maxHeight: 540,
+        quality: 0.8,
+        mimeType: "image/webp"
+    }));
+
+    variants.forEach(x => x.append(uploadForm));
+
+    const uploadButton = document.getElementById("uploadButton");
+    const detailButton = document.getElementById("detailButton");
+    const originalFile = document.getElementById("originalFile");
+
+    window.addEventListener("load", () => {
+        uploadButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            uploadFiles();
+        });
+    });
+
+    function onChangeOriginalFile() {
+        const originalImage = originalFile.files[0];
+
+        originalVariant.setToVariant(originalImage);
+        variants.forEach(x => x.convertToVariant(originalImage));
+    }
+
+    function uploadFiles() {
+        const uuid = crypto.randomUUID();
+
+        const uploadVariants = [originalVariant];
+        variants.forEach(x => uploadVariants.push(x));
+
+        // Do serial upload because prisma problems
+        // https://www.prisma.io/docs/orm/reference/prisma-client-reference#unique-key-constraint-errors-on-upserts
+        let i = 0;
+        const onNext = () => {
+            if (i < uploadVariants.length - 1) {
+                i++;
+                uploadVariants[i].uploadFile(uuid, onNext);
+            } else {
+                detailButton.classList.remove("invisible");
+                detailButton.setAttribute("href", `./detail/${uuid}`);
+            }
+        }
+        uploadVariants[0].uploadFile(uuid, onNext);
+    }
+</script>

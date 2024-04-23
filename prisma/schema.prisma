@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db" // not used
+}
+
+model GalleryV1 {
+  uuid      String          @unique
+  blobs     GalleryV1Blob[]
+  createdAt DateTime        @default(now()) @map("created_at")
+}
+
+model GalleryV1Blob {
+  uuid     String
+  gallery  GalleryV1 @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
+  filename String
+
+  @@unique([uuid, filename])
+}

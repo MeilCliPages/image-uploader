@@ -1,0 +1,24 @@
+<script>
+    function onDeleteButtonClicked() {
+        if (confirm("Do you delete this image?")) {
+            const paths = window.location.pathname.split("/");
+            const uuid = paths[paths.length - 1]
+
+            const request = new XMLHttpRequest();
+            request.upload.addEventListener("error", (event) => {
+                alert("error");
+            });
+            request.upload.addEventListener("abort", (event) => {
+                alert("abort");
+            });
+            request.upload.addEventListener("timeout", (event) => {
+                alert("timeout");
+            });
+            request.addEventListener("load", (event) => {
+                window.location.href = "./../../v1";
+            });
+            request.open("DELETE", `/gallery/v1/api/${uuid}`);
+            request.send();
+        }
+    }
+</script>
