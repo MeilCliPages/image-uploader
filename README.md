@@ -25,7 +25,7 @@ This is image uploader of @MeilCli private usage. And @MeilCli still continue to
 Clone this repository & execute below commands
 ```sh
 npm install
-npx wrangler d1 migrations apply image-example-com --local
+npx wrangler d1 migrations apply d1-example-com --local
 npx prisma generate
 npm run dev
 ```
