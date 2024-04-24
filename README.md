@@ -41,6 +41,8 @@ npm run dev
 1. Do debug, execute `npm run dev`
 1. Deploy your worker, execute `npm run deploy`
 
+If you want to manage deployment code on private repository, see [Private management](./docs/private-management.md)
+
 ## Development documents
 - [Change D1](./docs/change-d1.md)
 
