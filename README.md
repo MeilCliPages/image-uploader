@@ -26,7 +26,7 @@ Clone this repository & execute below commands
 ```sh
 npm install
 npx wrangler d1 migrations apply d1-example-com --local
-npx prisma generate
+npm run generate
 npm run dev
 ```
 
