@@ -26,3 +26,14 @@ Therefore, in this document, guide the Edge TTL setting.
 1. Go back to cache rules list page.
 1. Change the rule to enabled.
    - Maybe, the default is disabled.
+
+## Set up Tiered Cache
+[The Tiered Cache](https://developers.cloudflare.com/cache/how-to/tiered-cache/) is one way of increasing possibility about cache hit.
+If enable Tiered Cache, Edge splits to upper tier and lower tier.
+The upper tier can connect to origin, and lower tier connect to upper tier, therefore Tiered Cache has possibility of cache hit on some tier.
+
+1. Open the Cloudflare dashboard.
+1. Click `Websites` on sidebar.
+1. Click the image hosting domain.
+1. Click `Caching` and then click `Tiered Cache` on sidebar.
+1. Select `Smart Tiered Caching Topology`
